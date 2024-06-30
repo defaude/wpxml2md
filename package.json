@@ -1,0 +1,13 @@
+{
+  "name": "wordpress-to-astro",
+  "version": "0.0.1",
+  "description": "tarnsforms a Wordpress XML export into something that's usable by Astro",
+  "author": "defaude",
+  "private": true,
+  "keywords": ["wordpress", "astro"],
+  "devDependencies": {
+    "@types/xml2js": "^0.4.14",
+    "tsx": "^4.16.0",
+    "xml2js": "^0.6.2"
+  }
+}
