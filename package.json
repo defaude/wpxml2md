@@ -9,8 +9,8 @@
     "astro"
   ],
   "scripts": {
-    "convert": "tsx convert.ts",
-    "process": "tsx process.ts"
+    "convert": "tsx src/convert.ts",
+    "process": "tsx src/process.ts"
   },
   "type": "module",
   "devDependencies": {
