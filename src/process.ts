@@ -1,3 +1,3 @@
-import { categories } from './categories';
+import { categories, defaultCategory } from './categories';
 
-console.info('Categories', categories);
+console.info('Categories', categories, defaultCategory);

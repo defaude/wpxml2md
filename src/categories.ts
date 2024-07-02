@@ -2,6 +2,8 @@ import { type RawCategory, rawCategories } from './importJson';
 
 type Category = { id: string; slug: string; name: string };
 
+export const categories = new Map<string, Category>();
+
 function toCategory(raw: RawCategory): Category {
     const {
         'wp:term_id': [id],
@@ -11,10 +13,9 @@ function toCategory(raw: RawCategory): Category {
     return { id, slug, name };
 }
 
-const categories: Record<string, Category> = {};
 for (const raw of rawCategories) {
     const category = toCategory(raw);
-    categories[category.id] = category;
+    categories.set(category.id, category);
 }
 
-export { categories };
+export const defaultCategory = categories.get('1');
