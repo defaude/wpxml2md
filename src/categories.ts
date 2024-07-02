@@ -1,6 +1,6 @@
 import { type RawCategory, rawCategories } from './importJson';
 
-type Category = { id: string; slug: string; name: string };
+export type Category = { id: string; slug: string; name: string };
 
 export const categories = new Map<string, Category>();
 
