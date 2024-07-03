@@ -1,7 +1,7 @@
 {
-  "name": "wordpress-to-astro",
+  "name": "wpxml2md",
   "version": "0.0.1",
-  "description": "tarnsforms a Wordpress XML export into something that's usable by Astro",
+  "description": "Turn a Wordpress XML export into markdown usable by SSGs like Astro",
   "author": "defaude",
   "private": true,
   "keywords": [
