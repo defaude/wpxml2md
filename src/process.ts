@@ -1,7 +1,8 @@
 import { categories, defaultCategory } from './categories';
-import { attachmentItems, postItems } from './items';
+import { attachments, posts } from './items';
 
 console.info('Categories', categories, defaultCategory);
+console.info('Attachment count', attachments.size);
+console.info('Post count', posts.size);
 
-console.info('Attachment count', attachmentItems.size);
-console.info('Post count', postItems.size);
+console.info(Array.from(posts.values())[20]);
