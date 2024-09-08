@@ -17,6 +17,9 @@ export type Post = {
     categoryNiceNames: string[];
     // wp:postmeta.find(x => x['wp:meta_key'][0] === '_thumbnail_id')?['wp:meta_value'][0]
     thumbnailId: string | undefined;
+
+    // will be populated later
+    thumbnailUrl?: string;
 };
 
 function toPost(raw: RawItem): Post {
