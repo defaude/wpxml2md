@@ -92,7 +92,7 @@ async function processPost(post: Post, site: string) {
 
     post.content = $.html();
 
-    await writeFile(new URL('index.mdx', postFolder), toMarkdown(post));
+    await writeFile(new URL('index.md', postFolder), toMarkdown(post));
 }
 
 function removeFileExtension(url: string): string {
