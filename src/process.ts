@@ -41,11 +41,11 @@ async function processPost(post: Post, site: string) {
         }
     }
 
-    // go through all images & links with images, download & replace in post.content
     const $ = load(post.content, {}, false);
 
     const imagesToLoad: string[] = [];
 
+    // replace links to images with thumbnails with links to full image
     $('a:has(img)').replaceWith((_, element) => {
         const $this = load(element);
         const href = $this('a').attr('href');
@@ -63,6 +63,7 @@ async function processPost(post: Post, site: string) {
         return element;
     });
 
+    // replace img tags with markdown images
     $('img').replaceWith((_, element) => {
         const $this = load(element);
         const $img = $this('img');
@@ -79,6 +80,15 @@ async function processPost(post: Post, site: string) {
     });
 
     await Promise.all(imagesToLoad.map(img => downloadImage(img, imageFolder)));
+
+    // replace text-only links with simple markdown links
+    $('a:not(:has(*))').replaceWith((_, element) => {
+        const $this = load(element);
+        const $a = $this('a');
+        const href = $a.attr('href');
+        const text = $a.text();
+        return `[${text}](${href})`;
+    });
 
     post.content = $.html();
 
