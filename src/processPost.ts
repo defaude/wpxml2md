@@ -1,40 +1,28 @@
-import { mkdir, rm, writeFile } from 'node:fs/promises';
-import { basename, extname } from 'node:path';
+import { basename, extname, join } from '@std/path';
 import { UTCDate } from '@date-fns/utc';
-import { load } from 'cheerio';
 import { getMonth } from 'date-fns/getMonth';
 import { getYear } from 'date-fns/getYear';
-import { downloadImage } from './downloadImage';
-import { site } from './importJson';
-import { type Post, attachments, posts } from './items';
-import { toMarkdown } from './toMarkdown';
+import { load } from 'cheerio';
+// import { downloadImage } from './downloadImage.ts';
+import { toMarkdown } from './toMarkdown.ts';
+import { Post } from './model.ts';
 
-const outputBase = '../output/';
-const outputFolder = new URL(outputBase, import.meta.url);
-
-console.info('purging output folder');
-await rm(outputFolder, { recursive: true, force: true });
-
-for (const post of posts.values()) {
-    await processPost(post, site);
-}
-
-async function processPost(post: Post, site: string) {
-    console.info(`processing post "${post.slug}"`);
+export async function processPost(post: Post, site: string, attachments: Record<string, string>) {
+    console.log(`processing post "${post.slug}"`);
 
     const publishedDate = new UTCDate(post.createdAt);
     const year = getYear(publishedDate);
     const month = `${getMonth(publishedDate) + 1}`.padStart(2, '0');
 
-    const postFolder = new URL(`./${year}/${month}/${post.slug}/`, outputFolder);
-    const imageFolder = new URL('img/', postFolder);
-    await mkdir(imageFolder, { recursive: true });
+    const postFolder = join('output', `${year}`, month, post.slug);
+    const imageFolder = join(postFolder, 'img');
+    await Deno.mkdir(imageFolder, { recursive: true });
 
     // download thumbnail
-    const thumbnailUrl = attachments.get(post.thumbnailId)?.url;
+    const thumbnailUrl = post.thumbnailId ? attachments[post.thumbnailId] : undefined;
     if (thumbnailUrl) {
         try {
-            await downloadImage(thumbnailUrl, imageFolder);
+            // await downloadImage(thumbnailUrl, imageFolder);
             post.thumbnailUrl = `./img/${basename(thumbnailUrl)}`;
         } catch (e) {
             console.error('Could not download thumbnail', e);
@@ -48,10 +36,10 @@ async function processPost(post: Post, site: string) {
     // replace links to images with thumbnails with links to full image
     $('a:has(img)').replaceWith((_, element) => {
         const $this = load(element);
-        const href = $this('a').attr('href');
+        const href = $this('a').attr('href') as string;
         const hrefWithoutExtension = removeFileExtension(href);
         const $img = $this('img');
-        const src = $img.attr('src');
+        const src = $img.attr('src') as string;
         const alt = $img.attr('alt') || basename(href);
 
         if (src.startsWith(hrefWithoutExtension)) {
@@ -67,7 +55,7 @@ async function processPost(post: Post, site: string) {
     $('img').replaceWith((_, element) => {
         const $this = load(element);
         const $img = $this('img');
-        const src = $img.attr('src');
+        const src = $img.attr('src') as string;
         const filename = basename(src);
         const alt = $img.attr('alt') || filename;
 
@@ -79,7 +67,7 @@ async function processPost(post: Post, site: string) {
         return element;
     });
 
-    await Promise.all(imagesToLoad.map(img => downloadImage(img, imageFolder)));
+    // await Promise.all(imagesToLoad.map((img) => downloadImage(img, imageFolder)));
 
     // replace text-only links with simple markdown links
     $('a:not(:has(*))').replaceWith((_, element) => {
@@ -92,7 +80,8 @@ async function processPost(post: Post, site: string) {
 
     post.content = $.html();
 
-    await writeFile(new URL('index.md', postFolder), toMarkdown(post));
+    using file = await Deno.create(join(postFolder, 'index.md'));
+    await file.write(new TextEncoder().encode(toMarkdown(post)));
 }
 
 function removeFileExtension(url: string): string {
