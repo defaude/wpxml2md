@@ -7,10 +7,10 @@
     },
     "imports": {
         "@date-fns/utc": "npm:@date-fns/utc@^2.1.0",
-        "@libs/xml": "jsr:@libs/xml@^6.0.0",
-        "@std/assert": "jsr:@std/assert@1",
-        "@std/path": "jsr:@std/path@^1.0.6",
-        "@std/text": "jsr:@std/text@^1.0.7",
+        "@libs/xml": "jsr:@libs/xml@^6.0.1",
+        "@std/assert": "jsr:@std/assert@^1.0.8",
+        "@std/path": "jsr:@std/path@^1.0.8",
+        "@std/text": "jsr:@std/text@^1.0.8",
         "cheerio": "npm:cheerio@^1.0.0",
         "date-fns": "npm:date-fns@^4.1.0"
     },
