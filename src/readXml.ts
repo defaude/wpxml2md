@@ -1,7 +1,5 @@
 import { parse } from '@libs/xml';
 import { slugify } from '@std/text/unstable-slugify';
-import { groupBy } from './util.ts';
-
 import type { Attachment, Category, Post } from './model.ts';
 
 type PostType = 'attachment' | 'custom_css' | 'nav_menu_item' | 'post' | 'page' | 'wp_global_styles';
@@ -80,7 +78,10 @@ export async function readXml(inputFile: string) {
     using file = await Deno.open(inputFile);
     const xml = parse(file) as unknown as WpXml;
     const { title, link, item: items } = xml.rss.channel;
-    const { post: wpPosts, attachment: wpAttachments } = groupBy(items, (item) => item['wp:post_type']);
+    const { post: wpPosts = [], attachment: wpAttachments = [] } = Object.groupBy(
+        items,
+        (item) => item['wp:post_type'],
+    );
 
     const posts = wpPosts.map(toPost);
 
