@@ -21,7 +21,7 @@ export async function downloadImage(url: string, imageFolder: URL) {
 
     if (originalImageUrl !== url) {
         // the url seems to point to a thumbnail => attempt to download the original file instead
-        console.info(`${url} seems to be a thumbnail\n => downloading ${originalImageUrl} instead`);
+        console.log(`${url} seems to be a thumbnail\n => downloading ${originalImageUrl} instead`);
         const [originalBuffer, statusText] = await doDownload(originalImageUrl);
         if (statusText) {
             console.warn('Failed to download original image, continuing with the URL from the post');
@@ -31,7 +31,7 @@ export async function downloadImage(url: string, imageFolder: URL) {
     }
 
     if (!buffer) {
-        console.info(`Downloading ${url}`);
+        console.log(`Downloading ${url}`);
         const [urlBuffer, statusText] = await doDownload(url);
         if (statusText) {
             throw new Error(`Failed to download ${url}\n(${statusText})`);
