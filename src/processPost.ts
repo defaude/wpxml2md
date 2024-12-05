@@ -8,13 +8,19 @@ import { toMarkdown } from './toMarkdown.ts';
 import { Post } from './model.ts';
 
 export async function processPost(post: Post, site: string, attachments: Record<string, string>) {
-    console.log(`processing post "${post.slug}"`);
-
     const publishedDate = new UTCDate(post.createdAt);
     const year = getYear(publishedDate);
     const month = `${getMonth(publishedDate) + 1}`.padStart(2, '0');
 
     const postFolder = join('output', `${year}`, month, post.slug);
+    const alreadyExists = await Deno.stat(postFolder).then(() => true).catch(() => false);
+    if (alreadyExists) {
+        console.warn(`Post "${post.slug}" already exists, skipping`);
+        return;
+    }
+
+    console.log(`Processing post "${post.slug}"`);
+
     const imageFolder = join(postFolder, 'img');
     await Deno.mkdir(imageFolder, { recursive: true });
 
