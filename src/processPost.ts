@@ -5,7 +5,7 @@ import { getYear } from 'date-fns/getYear';
 import { load } from 'cheerio';
 import { toMarkdown } from './toMarkdown.ts';
 import { Post } from './model.ts';
-import { downloadImage } from './downloadImage.ts';
+import { downloadImage, downloadVideo } from './downloadMedia.ts';
 
 export async function processPost(post: Post, site: string, attachments: Record<string, string>) {
     const publishedDate = new UTCDate(post.createdAt);
@@ -61,6 +61,15 @@ export async function processPost(post: Post, site: string, attachments: Record<
             const imageString = `![${alt}](${imagePath})`;
             $img.replaceWith(imageString);
         }
+    }
+
+    // replace video tags with cleaned up video tags
+    for (const video of $('figure.wp-block-video video')) {
+        const $video = $(video);
+        const src = $video.attr('src') as string;
+        const videoPath = await downloadVideo(src, imageFolder, postFolder);
+        const videoString = `<video controls src="${videoPath}"></video>`;
+        $video.replaceWith(videoString);
     }
 
     // replace text-only links with simple markdown links

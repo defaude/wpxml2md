@@ -36,3 +36,7 @@ export async function downloadImage(image: string, imageFolder: string, postFold
 
     return await doDownload(image, imageFolder, postFolder);
 }
+
+export async function downloadVideo(video: string, videoFolder: string, postFolder: string): Promise<string> {
+    return await doDownload(video, videoFolder, postFolder);
+}
