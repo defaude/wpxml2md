@@ -3,9 +3,9 @@ import { UTCDate } from '@date-fns/utc';
 import { getMonth } from 'date-fns/getMonth';
 import { getYear } from 'date-fns/getYear';
 import { load } from 'cheerio';
-// import { downloadImage } from './downloadImage.ts';
 import { toMarkdown } from './toMarkdown.ts';
 import { Post } from './model.ts';
+import { downloadImage } from './downloadImage.ts';
 
 export async function processPost(post: Post, site: string, attachments: Record<string, string>) {
     const publishedDate = new UTCDate(post.createdAt);
@@ -28,8 +28,7 @@ export async function processPost(post: Post, site: string, attachments: Record<
     const thumbnailUrl = post.thumbnailId ? attachments[post.thumbnailId] : undefined;
     if (thumbnailUrl) {
         try {
-            // await downloadImage(thumbnailUrl, imageFolder);
-            post.thumbnailUrl = `./img/${basename(thumbnailUrl)}`;
+            post.thumbnailUrl = await downloadImage(thumbnailUrl, imageFolder, postFolder);
         } catch (e) {
             console.error('Could not download thumbnail', e);
         }
@@ -37,52 +36,47 @@ export async function processPost(post: Post, site: string, attachments: Record<
 
     const $ = load(post.content, {}, false);
 
-    const imagesToLoad: string[] = [];
-
     // replace links to images with thumbnails with links to full image
-    $('a:has(img)').replaceWith((_, element) => {
-        const $this = load(element);
-        const href = $this('a').attr('href') as string;
+    for (const link of $('a:has(img)')) {
+        const $link = $(link);
+        const href = $link.attr('href') as string;
         const hrefWithoutExtension = removeFileExtension(href);
-        const $img = $this('img');
+        const $img = $link.find('img');
         const src = $img.attr('src') as string;
         const alt = $img.attr('alt') || basename(href);
-
         if (src.startsWith(hrefWithoutExtension)) {
-            imagesToLoad.push(href);
-            const filename = basename(href);
-            return `[![${alt}](./img/${filename})](./img/${filename})`;
+            const imagePath = await downloadImage(href, imageFolder, postFolder);
+            const imageString = `[![${alt}](${imagePath})](${imagePath})`;
+            $link.replaceWith(imageString);
         }
-
-        return element;
-    });
+    }
 
     // replace img tags with markdown images
-    $('img').replaceWith((_, element) => {
-        const $this = load(element);
-        const $img = $this('img');
+    for (const img of $('img')) {
+        const $img = $(img);
         const src = $img.attr('src') as string;
-        const filename = basename(src);
-        const alt = $img.attr('alt') || filename;
-
+        const alt = $img.attr('alt') || basename(src);
         if (src.startsWith(site)) {
-            imagesToLoad.push(src);
-            return `![${alt}](./img/${filename})`;
+            const imagePath = await downloadImage(src, imageFolder, postFolder);
+            const imageString = `![${alt}](${imagePath})`;
+            $img.replaceWith(imageString);
         }
-
-        return element;
-    });
-
-    // await Promise.all(imagesToLoad.map((img) => downloadImage(img, imageFolder)));
+    }
 
     // replace text-only links with simple markdown links
-    $('a:not(:has(*))').replaceWith((_, element) => {
-        const $this = load(element);
-        const $a = $this('a');
-        const href = $a.attr('href');
+    for (const a of $('a:not(:has(*))')) {
+        const $a = $(a);
+        const href = $a.attr('href') as string;
         const text = $a.text();
-        return `[${text}](${href})`;
-    });
+        $a.replaceWith(`[${text}](${href})`);
+    }
+
+    // remove comments - todo not working yet
+    // $('*').contents().each(function () {
+    //     if (this.nodeType === 8) {
+    //         $(this).remove();
+    //     }
+    // });
 
     post.content = $.html();
 
