@@ -63,13 +63,13 @@ export async function processPost(post: Post, site: string, attachments: Record<
         }
     }
 
-    // replace video tags with cleaned up video tags
-    for (const video of $('figure.wp-block-video video')) {
-        const $video = $(video);
-        const src = $video.attr('src') as string;
+    // clean up video tags
+    for (const figure of $('figure.wp-block-video')) {
+        const $figure = $(figure);
+        const src = $figure.find('video').attr('src') as string;
         const videoPath = await downloadVideo(src, imageFolder, postFolder);
         const videoString = `<video controls src="${videoPath}"></video>`;
-        $video.replaceWith(videoString);
+        $figure.replaceWith(videoString);
     }
 
     // replace text-only links with simple markdown links
@@ -80,14 +80,32 @@ export async function processPost(post: Post, site: string, attachments: Record<
         $a.replaceWith(`[${text}](${href})`);
     }
 
-    // remove comments - todo not working yet
-    // $('*').contents().each(function () {
-    //     if (this.nodeType === 8) {
-    //         $(this).remove();
-    //     }
-    // });
+    // strip <p> and <figure class="wp-block-image"> tags
+    for (const thing of $('p, figure.wp-block-image')) {
+        const $thing = $(thing);
+        $thing.replaceWith($thing.contents());
+    }
 
-    post.content = $.html();
+    // strip <figure class="wp-block-gallery"> tags
+    for (const figure of $('figure.wp-block-gallery')) {
+        const $figure = $(figure);
+        $figure.replaceWith($figure.contents());
+    }
+
+    // remove comments
+    // based on https://github.com/cheeriojs/cheerio/issues/214
+    const $wrapped = load(`<div>${$.html()}</div>`);
+
+    $wrapped.root().find('*').contents().each(function () {
+        if (this.type === 'comment') {
+            $(this).remove();
+        }
+    });
+
+    // output cleaned up content
+    post.content = $wrapped.root().find('body > div').html()!.trim()
+        .replaceAll('\n\n\n\n', '\n\n')
+        .replaceAll('\n\n\n', '\n\n');
 
     using file = await Deno.create(join(postFolder, 'index.md'));
     await file.write(new TextEncoder().encode(toMarkdown(post)));
