@@ -92,6 +92,12 @@ export async function processPost(post: Post, site: string, attachments: Record<
         $figure.replaceWith($figure.contents());
     }
 
+    // replace <strong> and <b> tags with markdown bold
+    for (const strong of $('strong, b')) {
+        const $strong = $(strong);
+        $strong.replaceWith(`**${$strong.contents()}**`);
+    }
+
     // remove comments
     // based on https://github.com/cheeriojs/cheerio/issues/214
     const $wrapped = load(`<div>${$.html()}</div>`);
