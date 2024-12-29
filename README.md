@@ -13,7 +13,7 @@ how content will come out of your worpress installation ⚠️
 3. Run `npm run process`. This will attempt to read all posts and produce files in `output/<year>/<month>/<slug>/**/*`.
 
 Each post folder contains its `index.md`. The `process` script attempts to download all images contained the post and
-store them in a `./img` subfolder in the post's folder.
+store them in a `./media` subfolder in the post's folder.
 
 ## TO DO
 

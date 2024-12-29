@@ -22,21 +22,21 @@ export async function doDownload(url: string, targetFolder: string, relativeSour
     return relative(relativeSourceFolder, filePath);
 }
 
-export async function downloadImage(image: string, imageFolder: string, postFolder: string): Promise<string> {
+export async function downloadImage(image: string, mediaFolder: string, postFolder: string): Promise<string> {
     const url = getFullSizedUrl(image);
 
     if (url !== image) {
         console.log(`${image} seems to be a thumbnail\n => downloading ${url} instead`);
         try {
-            return await doDownload(url, imageFolder, postFolder);
+            return await doDownload(url, mediaFolder, postFolder);
         } catch (_e) {
             console.warn('Failed to download original image, continuing with the URL from the post');
         }
     }
 
-    return await doDownload(image, imageFolder, postFolder);
+    return await doDownload(image, mediaFolder, postFolder);
 }
 
-export async function downloadVideo(video: string, videoFolder: string, postFolder: string): Promise<string> {
-    return await doDownload(video, videoFolder, postFolder);
+export async function downloadVideo(video: string, mediaFolder: string, postFolder: string): Promise<string> {
+    return await doDownload(video, mediaFolder, postFolder);
 }

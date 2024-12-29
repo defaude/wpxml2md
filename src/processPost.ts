@@ -21,14 +21,14 @@ export async function processPost(post: Post, site: string, attachments: Record<
 
     console.log(`Processing post "${post.slug}"`);
 
-    const imageFolder = join(postFolder, 'img');
-    await Deno.mkdir(imageFolder, { recursive: true });
+    const mediaFolder = join(postFolder, 'media');
+    await Deno.mkdir(mediaFolder, { recursive: true });
 
     // download thumbnail
     const thumbnailUrl = post.thumbnailId ? attachments[post.thumbnailId] : undefined;
     if (thumbnailUrl) {
         try {
-            post.thumbnailUrl = await downloadImage(thumbnailUrl, imageFolder, postFolder);
+            post.thumbnailUrl = await downloadImage(thumbnailUrl, mediaFolder, postFolder);
         } catch (e) {
             console.error('Could not download thumbnail', e);
         }
@@ -45,7 +45,7 @@ export async function processPost(post: Post, site: string, attachments: Record<
         const src = $img.attr('src') as string;
         const alt = $img.attr('alt') || basename(href);
         if (src.startsWith(hrefWithoutExtension)) {
-            const imagePath = await downloadImage(href, imageFolder, postFolder);
+            const imagePath = await downloadImage(href, mediaFolder, postFolder);
             const imageString = `[![${alt}](${imagePath})](${imagePath})`;
             $link.replaceWith(imageString);
         }
@@ -57,7 +57,7 @@ export async function processPost(post: Post, site: string, attachments: Record<
         const src = $img.attr('src') as string;
         const alt = $img.attr('alt') || basename(src);
         if (src.startsWith(site)) {
-            const imagePath = await downloadImage(src, imageFolder, postFolder);
+            const imagePath = await downloadImage(src, mediaFolder, postFolder);
             const imageString = `![${alt}](${imagePath})`;
             $img.replaceWith(imageString);
         }
@@ -67,7 +67,7 @@ export async function processPost(post: Post, site: string, attachments: Record<
     for (const figure of $('figure.wp-block-video')) {
         const $figure = $(figure);
         const src = $figure.find('video').attr('src') as string;
-        const videoPath = await downloadVideo(src, imageFolder, postFolder);
+        const videoPath = await downloadVideo(src, mediaFolder, postFolder);
         const videoString = `<video controls src="${videoPath}"></video>`;
         $figure.replaceWith(videoString);
     }
