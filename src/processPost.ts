@@ -94,6 +94,12 @@ export async function processPost(post: Post, site: string, attachments: Record<
         $strong.replaceWith(`**${$strong.contents()}**`);
     }
 
+    // replace <s> tags with markdown strikethrough
+    for (const s of $('s')) {
+        const $s = $(s);
+        $s.replaceWith(`~~${$s.contents()}~~`);
+    }
+
     // remove comments
     // based on https://github.com/cheeriojs/cheerio/issues/214
     const $wrapped = load(`<div>${$.html()}</div>`);
