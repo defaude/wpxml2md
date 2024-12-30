@@ -1,4 +1,4 @@
-import { basename, extname, join } from '@std/path';
+import { basename, join } from '@std/path';
 import { UTCDate } from '@date-fns/utc';
 import { getMonth } from 'date-fns/getMonth';
 import { getYear } from 'date-fns/getYear';
@@ -30,7 +30,7 @@ export async function processPost(post: Post, site: string, attachments: Record<
         try {
             post.thumbnailUrl = await downloadImage(thumbnailUrl, mediaFolder, postFolder);
         } catch (e) {
-            console.error('Could not download thumbnail', e);
+            console.error('  ❌Could not download thumbnail', e);
         }
     }
 
@@ -39,16 +39,12 @@ export async function processPost(post: Post, site: string, attachments: Record<
     // replace links to images with thumbnails with links to full image
     for (const link of $('a:has(img)')) {
         const $link = $(link);
-        const href = $link.attr('href') as string;
-        const hrefWithoutExtension = removeFileExtension(href);
         const $img = $link.find('img');
         const src = $img.attr('src') as string;
-        const alt = $img.attr('alt') || basename(href);
-        if (src.startsWith(hrefWithoutExtension)) {
-            const imagePath = await downloadImage(href, mediaFolder, postFolder);
-            const imageString = `[![${alt}](${imagePath})](${imagePath})`;
-            $link.replaceWith(imageString);
-        }
+        const alt = $img.attr('alt') ?? '';
+        const imagePath = await downloadImage(src, mediaFolder, postFolder);
+        const imageString = `[![${alt}](${imagePath})](${imagePath})`;
+        $link.replaceWith(imageString);
     }
 
     // replace img tags with markdown images
@@ -115,9 +111,4 @@ export async function processPost(post: Post, site: string, attachments: Record<
 
     using file = await Deno.create(join(postFolder, 'index.md'));
     await file.write(new TextEncoder().encode(toMarkdown(post)));
-}
-
-function removeFileExtension(url: string): string {
-    const extension = extname(url);
-    return url.slice(0, -extension.length);
 }

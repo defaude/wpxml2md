@@ -1,13 +1,7 @@
 import { basename, join, relative } from '@std/path';
+import { unThumbnail } from './unThumbnail.ts';
 
-// -(3-5 digits)x(3-5 digits) with a positive lookahead to the extension and the end of the string
-const thumbnailPattern = /-\d{3,5}x\d{3,5}(?=\.\w{3,4}$)/;
-
-function getFullSizedUrl(url: string) {
-    return url.replace(thumbnailPattern, '');
-}
-
-export async function doDownload(url: string, targetFolder: string, relativeSourceFolder: string) {
+async function doDownload(url: string, targetFolder: string, relativeSourceFolder: string) {
     const response = await fetch(url);
     if (!response.ok) {
         throw new Error(`Failed to download ${url}\n(${response.statusText})`);
@@ -23,20 +17,33 @@ export async function doDownload(url: string, targetFolder: string, relativeSour
 }
 
 export async function downloadImage(image: string, mediaFolder: string, postFolder: string): Promise<string> {
-    const url = getFullSizedUrl(image);
+    const url = unThumbnail(image);
 
     if (url !== image) {
-        console.log(`${image} seems to be a thumbnail\n => downloading ${url} instead`);
         try {
-            return await doDownload(url, mediaFolder, postFolder);
+            const resultingUrl = await doDownload(url, mediaFolder, postFolder);
+            console.log(`  🏞️  downloaded ${url} (full-sized)`);
+            return resultingUrl;
         } catch (_e) {
-            console.warn('Failed to download original image, continuing with the URL from the post');
+            console.warn(`  ⚠️could not find full-sized replacement, downloading original ${image}`);
         }
     }
 
-    return await doDownload(image, mediaFolder, postFolder);
+    try {
+        const resultingUrl = await doDownload(image, mediaFolder, postFolder);
+        console.log(`  🌄 downloaded ${image} (original)`);
+        return resultingUrl;
+    } catch (e) {
+        throw new Error(`Failed to download image ${image}`, { cause: e });
+    }
 }
 
 export async function downloadVideo(video: string, mediaFolder: string, postFolder: string): Promise<string> {
-    return await doDownload(video, mediaFolder, postFolder);
+    try {
+        const resultingUrl = await doDownload(video, mediaFolder, postFolder);
+        console.log(`  📀️ downloaded ${video}`);
+        return resultingUrl;
+    } catch (e) {
+        throw new Error(`Failed to download video ${video}`, { cause: e });
+    }
 }
