@@ -88,6 +88,13 @@ export async function processPost(post: Post, site: string, attachments: Record<
         $figure.replaceWith($figure.contents());
     }
 
+    // replace <ul> with markdown lists
+    for (const ul of $('ul')) {
+        const $ul = $(ul);
+        const items = $ul.find('li').map((_, li) => `- ${$(li).contents()}`).get().join('\n');
+        $ul.replaceWith(items);
+    }
+
     // replace <strong> and <b> tags with markdown bold
     for (const strong of $('strong, b')) {
         const $strong = $(strong);
