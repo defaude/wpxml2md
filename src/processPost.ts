@@ -82,8 +82,8 @@ export async function processPost(post: Post, site: string, attachments: Record<
         $thing.replaceWith($thing.contents());
     }
 
-    // strip <figure class="wp-block-gallery"> tags
-    for (const figure of $('figure.wp-block-gallery')) {
+    // strip remaining <figure> tags
+    for (const figure of $('figure')) {
         const $figure = $(figure);
         $figure.replaceWith($figure.contents());
     }
