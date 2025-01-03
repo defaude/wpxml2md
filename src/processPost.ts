@@ -113,6 +113,12 @@ export async function processPost(post: Post, site: string, attachments: Record<
         $s.replaceWith(`~~${$s.contents()}~~`);
     }
 
+    // replace html headings with markdown headings
+    for (const h of $('h1, h2, h3, h4, h5, h6')) {
+        const $h = $(h);
+        $h.replaceWith(`# ${$h.contents()}`);
+    }
+
     // remove comments
     // based on https://github.com/cheeriojs/cheerio/issues/214
     const $wrapped = load(`<div>${$.html()}</div>`);
