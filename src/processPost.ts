@@ -94,6 +94,12 @@ export async function processPost(post: Post, site: string, attachments: Record<
         $strong.replaceWith(`**${$strong.contents()}**`);
     }
 
+    // replace <em> tags with markdown italic
+    for (const em of $('em')) {
+        const $em = $(em);
+        $em.replaceWith(`*${$em.contents()}*`);
+    }
+
     // replace <s> tags with markdown strikethrough
     for (const s of $('s')) {
         const $s = $(s);
