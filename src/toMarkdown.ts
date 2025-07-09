@@ -1,9 +1,15 @@
 import { UTCDate } from '@date-fns/utc';
+import { getMonth } from 'date-fns/getMonth';
+import { getYear } from 'date-fns/getYear';
 import type { Post } from './model.ts';
 
 export function toMarkdown(post: Post) {
+    const publishedDate = new UTCDate(post.createdAt);
+    const year = getYear(publishedDate);
+    const month = `${getMonth(publishedDate) + 1}`.padStart(2, '0');
+
     return `---
-slug: ${post.slug}
+slug: ${year}/${month}/${post.slug}
 title: "${post.title}"
 createdAt: ${new UTCDate(post.createdAt)}
 modifiedAt: ${new UTCDate(post.modifiedAt)}
