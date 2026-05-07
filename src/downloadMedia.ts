@@ -2,16 +2,16 @@ import { basename, join, relative } from '@std/path';
 import { unThumbnail } from './unThumbnail.ts';
 
 async function doDownload(url: string, targetFolder: string, relativeSourceFolder: string) {
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`Failed to download ${url}\n(${response.statusText})`);
-    }
-
-    const buffer = await response.arrayBuffer();
+    // const response = await fetch(url);
+    // if (!response.ok) {
+    //     throw new Error(`Failed to download ${url}\n(${response.statusText})`);
+    // }
+    //
+    // const buffer = await response.arrayBuffer();
     const filename = basename(url);
     const filePath = join(targetFolder, filename);
 
-    await Deno.writeFile(filePath, new Uint8Array(buffer));
+    // await Deno.writeFile(filePath, new Uint8Array(buffer));
 
     return relative(relativeSourceFolder, filePath);
 }

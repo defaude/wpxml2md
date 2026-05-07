@@ -10,7 +10,7 @@ export function toMarkdown(post: Post) {
 
     return `---
 slug: ${year}/${month}/${post.slug}
-title: "${post.title}"
+title: "${post.title.replaceAll('"', '\\"')}"
 createdAt: ${new UTCDate(post.createdAt)}
 modifiedAt: ${new UTCDate(post.modifiedAt)}
 thumbnail: ${post.thumbnailUrl ?? ''}

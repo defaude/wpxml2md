@@ -14,10 +14,10 @@ export async function processPost(post: Post, site: string, attachments: Record<
 
     const postFolder = join('output', `${year}`, month, post.slug);
     const alreadyExists = await Deno.stat(postFolder).then(() => true).catch(() => false);
-    if (alreadyExists) {
-        console.warn(`Post "${post.slug}" already exists, skipping`);
-        return;
-    }
+    // if (alreadyExists) {
+    //     console.warn(`Post "${post.slug}" already exists, skipping`);
+    //     return;
+    // }
 
     console.log(`Processing post "${post.slug}"`);
 
