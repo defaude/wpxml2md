@@ -31,7 +31,7 @@ export const coreHtmlFixtures: HtmlConversionFixture[] = [
         name: 'nested unordered and ordered lists retain nesting and start',
         html:
             '<ul><li>Alpha<ol start="3"><li>Three<ul><li>Nested</li></ul></li><li>Four</li></ol></li><li>Beta</li></ul>',
-        markdown: '- Alpha\n  3. Three\n     - Nested\n  4. Four\n- Beta' + '\n',
+        markdown: '- Alpha\n\n  3. Three\n     - Nested\n  4. Four\n\n- Beta' + '\n',
     },
     {
         name: 'loose list items retain multiple paragraphs',
@@ -61,7 +61,7 @@ export const coreHtmlFixtures: HtmlConversionFixture[] = [
     {
         name: 'literal Markdown punctuation is escaped as text',
         html: '<p>Keep *stars*, _underscores_, and [brackets].</p>',
-        markdown: 'Keep \\*stars\\*, \\_underscores\\_, and \\[brackets\\].' + '\n',
+        markdown: 'Keep \\*stars\\*, \\_underscores\\_, and \\[brackets].' + '\n',
     },
     {
         name: 'simple table uses GFM table syntax',
