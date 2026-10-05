@@ -109,3 +109,49 @@ Deno.test('XML timestamps preserve UTC and reject invalid calendar dates', async
         await Deno.remove(dir, { recursive: true });
     }
 });
+
+Deno.test('integrated conversion writes separated blocks, localized media and unchanged article links', async () => {
+    const dir = await Deno.makeTempDir();
+    const cwd = Deno.cwd();
+    const fetch = globalThis.fetch;
+    const post = {
+        ...examplePost,
+        content: '<p>One</p><p>Two <a href="https://example.org/article"><strong>article</strong></a></p>' +
+            '<figure><a href="https://example.org/photo.jpg"><img src="https://example.org/photo-1024x768.jpg" alt="Photo"></a><figcaption>Caption</figcaption></figure>' +
+            '<p><a href="https://example.org/story"><img src="https://example.org/story.jpg" alt="Story"></a></p>' +
+            '<video controls muted src="https://example.org/clip.mp4" poster="https://example.org/poster.jpg"><source src="https://example.org/clip.webm" type="video/webm"></video>',
+    };
+    const original = structuredClone(post);
+    const calls: string[] = [];
+    try {
+        Deno.chdir(dir);
+        globalThis.fetch = (input) => {
+            calls.push(String(input));
+            return Promise.resolve(new Response(new Uint8Array([7, 8, 9])));
+        };
+        const markdown = await processPost(post, 'https://example.org', {});
+        const body = markdown.slice(markdown.indexOf('\n---\n') + 5);
+        expect(body).toBe(
+            'One\n\nTwo [**article**](https://example.org/article)\n\n' +
+                '[![Photo](media/photo.jpg)](media/photo.jpg)\n\nCaption\n\n' +
+                '[![Story](media/story.jpg)](https://example.org/story)\n\n' +
+                '<video controls muted src="media/clip.mp4" poster="media/poster.jpg"><source src="media/clip.webm" type="video/webm"></video>\n',
+        );
+        expect(post).toEqual(original);
+        expect(await Deno.readTextFile('output/2025/01/01_example/index.md')).toBe(markdown);
+        expect(calls).toEqual([
+            'https://example.org/photo.jpg',
+            'https://example.org/story.jpg',
+            'https://example.org/poster.jpg',
+            'https://example.org/clip.mp4',
+            'https://example.org/clip.webm',
+        ]);
+        for (const name of ['photo.jpg', 'story.jpg', 'poster.jpg', 'clip.mp4', 'clip.webm']) {
+            expect(await Deno.readFile(`output/2025/01/01_example/media/${name}`)).toEqual(new Uint8Array([7, 8, 9]));
+        }
+    } finally {
+        globalThis.fetch = fetch;
+        Deno.chdir(cwd);
+        await Deno.remove(dir, { recursive: true });
+    }
+});

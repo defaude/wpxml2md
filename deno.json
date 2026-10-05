@@ -20,7 +20,6 @@
         "hast-util-to-html": "npm:hast-util-to-html@^9.0.5",
         "hast-util-to-mdast": "npm:hast-util-to-mdast@^10.1.2",
         "mdast": "npm:@types/mdast@^4.0.4",
-        "cheerio": "npm:cheerio@^1.2.0",
         "rehype-parse": "npm:rehype-parse@^9.0.1",
         "rehype-remark": "npm:rehype-remark@^10.0.1",
         "remark-gfm": "npm:remark-gfm@^4.0.1",

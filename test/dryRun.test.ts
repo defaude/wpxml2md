@@ -58,7 +58,7 @@ Deno.test('dry-run writes Markdown repeatedly and preserves media without printi
         await Deno.writeTextFile('export.xml', xmlDocument(xmlItem()));
         await main(['--dry-run']);
         const updatedMarkdown = await Deno.readTextFile(markdownPath);
-        expect(updatedMarkdown).toContain('Hello &amp; world');
+        expect(updatedMarkdown).toContain('Hello & world');
         expect(updatedMarkdown).not.toContain('stale Markdown');
         expect(await Deno.readFile(`${mediaFolder}/photo.jpg`)).toEqual(new Uint8Array([4, 5, 6]));
         expect(await Deno.readTextFile('output/keep.txt')).toBe('unchanged');
@@ -126,7 +126,7 @@ Deno.test('normal conversion creates media folder and rejects existing output', 
         await main([]);
         const path = 'output/2025/01/01_example/index.md';
         const original = await Deno.readTextFile(path);
-        expect(original).toContain('Hello &amp; world');
+        expect(original).toContain('Hello & world');
         expect((await Deno.stat('output/2025/01/01_example/media')).isDirectory).toBe(true);
         await expect(main([])).rejects.toThrow('already exists');
         expect(await Deno.readTextFile(path)).toEqual(original);
