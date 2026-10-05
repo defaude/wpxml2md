@@ -2,7 +2,7 @@
     "tasks": {
         "start": "deno --allow-env --allow-read --allow-write --allow-net main.ts",
         "dev": "deno run --watch --allow-env --allow-read --allow-write=output --deny-net main.ts --dry-run",
-        "test": "deno test --frozen --allow-read --allow-write --allow-env",
+        "test": "deno test --frozen --allow-read --allow-write --allow-env --deny-net",
         "check": "deno check --frozen main.ts test/*.test.ts",
         "fmt": "deno fmt",
         "lint": "deno lint",
@@ -23,6 +23,7 @@
         "rehype-parse": "npm:rehype-parse@^9.0.1",
         "rehype-remark": "npm:rehype-remark@^10.0.1",
         "remark-gfm": "npm:remark-gfm@^4.0.1",
+        "remark-parse": "npm:remark-parse@^11.0.0",
         "remark-stringify": "npm:remark-stringify@^11.0.0",
         "unified": "npm:unified@^11.0.5"
     },

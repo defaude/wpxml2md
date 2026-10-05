@@ -44,8 +44,8 @@ Deno.test('XML supports zero or one item and missing categories', async () => {
 
 Deno.test('frontmatter uses UTC year/month and ISO dates', () => {
     const markdown = toMarkdown(examplePost);
-    expect(markdown).toContain('slug: 2025/01/01_example');
     const metadata = parse(markdown.split('---')[1]) as Record<string, unknown>;
+    expect(metadata.slug).toBe('2025/01/01_example');
     expect(metadata.createdAt).toEqual('2025-01-01T00:30:00.000Z');
     expect(metadata.title).toEqual(examplePost.title);
     const special = {
@@ -65,8 +65,9 @@ Deno.test('HTML conversion retains text, emphasis and links', async () => {
         Deno.chdir(dir);
         await processPost({ ...examplePost }, 'https://example.org', {});
         const markdown = await Deno.readTextFile('output/2025/01/01_example/index.md');
-        expect(markdown).toContain('Hello **world**');
-        expect(markdown).toContain('[Link](https://example.org)');
+        expect(markdown.slice(markdown.indexOf('\n---\n') + 5)).toBe(
+            'Hello **world**\n\n[Link](https://example.org)\n',
+        );
     } finally {
         Deno.chdir(cwd);
         await Deno.remove(dir, { recursive: true });
