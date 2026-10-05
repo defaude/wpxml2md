@@ -37,10 +37,14 @@ type WpXml = {
             title: string;
             link: string;
             language: string;
-            item: WpChannelItem[];
+            item?: WpChannelItem | WpChannelItem[];
         };
     };
 };
+
+function asArray<T>(value: T | T[] | undefined): T[] {
+    return value === undefined ? [] : Array.isArray(value) ? value : [value];
+}
 
 function toAttachment(item: WpChannelItem): Attachment {
     return {
@@ -64,8 +68,8 @@ function toPost(item: WpChannelItem): Post {
         createdAt: `${item['wp:post_date_gmt']} +0000`,
         modifiedAt: `${item['wp:post_modified_gmt']} +0000`,
         title: item.title,
-        content: item['content:encoded']!,
-        categories: Array.isArray(item.category) ? item.category.map(toCategory) : [toCategory(item.category!)],
+        content: item['content:encoded'] ?? '',
+        categories: asArray(item.category).map(toCategory),
         thumbnailId: Array.isArray(postMeta)
             ? postMeta.find((pm) => pm['wp:meta_key'] === '_thumbnail_id')?.['wp:meta_value']
             : !!postMeta && postMeta['wp:meta_key'] === '_thumbnail_id'
@@ -75,22 +79,17 @@ function toPost(item: WpChannelItem): Post {
 }
 
 export async function readXml(inputFile: string) {
-    using file = await Deno.open(inputFile);
-    const xml = parse(file) as unknown as WpXml;
+    // The XML backend decodes XML entities already; leave HTML inside CDATA untouched.
+    const xml = parse(await Deno.readTextFile(inputFile), { revive: { entities: false } }) as unknown as WpXml;
     const { title, link, item: items } = xml.rss.channel;
     const { post: wpPosts = [], attachment: wpAttachments = [] } = Object.groupBy(
-        items,
+        asArray(items),
         (item) => item['wp:post_type'],
     );
 
     const posts = wpPosts.map(toPost);
 
-    const attachments = wpAttachments
-        .map(toAttachment)
-        .reduce((record, attachment) => {
-            record[attachment.id] = attachment.url;
-            return record;
-        }, {} as Record<string, string>);
+    const attachments = Object.fromEntries(wpAttachments.map(toAttachment).map(({ id, url }) => [id, url]));
 
     return { title, link, posts, attachments };
 }

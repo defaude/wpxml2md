@@ -1,16 +1,13 @@
 import { basename, join } from '@std/path';
-import { UTCDate } from '@date-fns/utc';
-import { getMonth } from 'date-fns/getMonth';
-import { getYear } from 'date-fns/getYear';
 import { load } from 'cheerio';
 import { toMarkdown } from './toMarkdown.ts';
 import { Post } from './model.ts';
 import { downloadImage, downloadVideo } from './downloadMedia.ts';
 
 export async function processPost(post: Post, site: string, attachments: Record<string, string>) {
-    const publishedDate = new UTCDate(post.createdAt);
-    const year = getYear(publishedDate);
-    const month = `${getMonth(publishedDate) + 1}`.padStart(2, '0');
+    const publishedDate = new Date(post.createdAt);
+    const year = publishedDate.getUTCFullYear();
+    const month = `${publishedDate.getUTCMonth() + 1}`.padStart(2, '0');
 
     const postFolder = join('output', `${year}`, month, post.slug);
     const alreadyExists = await Deno.stat(postFolder).then(() => true).catch(() => false);
@@ -134,6 +131,5 @@ export async function processPost(post: Post, site: string, attachments: Record<
         .replaceAll('\n\n\n\n', '\n\n')
         .replaceAll('\n\n\n', '\n\n');
 
-    using file = await Deno.create(join(postFolder, 'index.md'));
-    await file.write(new TextEncoder().encode(toMarkdown(post)));
+    await Deno.writeTextFile(join(postFolder, 'index.md'), toMarkdown(post));
 }

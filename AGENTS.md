@@ -9,5 +9,4 @@ This project converts WordPress XML exports to Markdown using Deno.
 - Keep tests offline and use temporary directories for generated output.
 - Do not modify a user's export or existing output while testing.
 
-The Deno skill is vendored from <https://github.com/denoland/skills>, following
-<https://deno.com/agents.md>.
+The Deno skill is vendored from <https://github.com/denoland/skills>, following <https://deno.com/agents.md>.
