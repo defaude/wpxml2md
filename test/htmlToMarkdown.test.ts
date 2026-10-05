@@ -46,12 +46,13 @@ Deno.test('HTML fallbacks preserve inline spacing, attributes and internal white
     );
 });
 
-Deno.test('complex tables keep captions, row spans and block cell contents as HTML', () => {
+Deno.test('complex tables keep captions, row spans, block contents and cell breaks as HTML', () => {
     for (
         const html of [
             '<table><caption>Caption</caption><tbody><tr><th>A</th></tr><tr><td>B</td></tr></tbody></table>',
             '<table><tbody><tr><th>A</th></tr><tr><td rowspan="2">B</td></tr><tr><td>C</td></tr></tbody></table>',
             '<table><tbody><tr><th>A</th></tr><tr><td><p>One</p><p>Two</p></td></tr></tbody></table>',
+            '<table><tbody><tr><th>A</th></tr><tr><td>One<br>Two</td></tr></tbody></table>',
         ]
     ) expect(htmlToMarkdown(html)).toBe(`${html}\n`);
 });

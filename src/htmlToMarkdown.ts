@@ -118,7 +118,7 @@ function simpleTable(node: Element): boolean {
             ['caption', 'colgroup', 'tfoot', 'table'].includes(child.tagName) ||
             Number(child.properties.colSpan ?? 1) !== 1 || Number(child.properties.rowSpan ?? 1) !== 1 ||
             (['td', 'th'].includes(child.tagName) && elements(child).some((nested) =>
-                !['a', 'b', 'br', 'code', 'del', 'em', 'i', 'img', 's', 'span', 'strike', 'strong'].includes(
+                !['a', 'b', 'code', 'del', 'em', 'i', 'img', 's', 'span', 'strike', 'strong'].includes(
                     nested.tagName,
                 )
             ))
