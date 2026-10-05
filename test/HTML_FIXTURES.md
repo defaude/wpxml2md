@@ -1,9 +1,9 @@
 # HTML-to-Markdown fixture contracts
 
-`htmlFixtures.ts` is a synthetic, private-data-free corpus for the planned structured converter. It exports two phases:
+`htmlFixtures.ts` is a synthetic, private-data-free corpus for the structured converter. It exports two phases:
 `coreHtmlFixtures` describes ordinary HTML structure and Markdown behavior; `wordpressHtmlFixtures` covers WordPress
 wrappers, image and video blocks, captions, and comments. Each entry contains the input fragment and the complete
-expected Markdown body, without frontmatter. Tests can consume these values once the converter is introduced.
+expected Markdown body, without frontmatter. The converter tests consume these values as complete output assertions.
 
 ## Output conventions
 
@@ -24,8 +24,8 @@ expected Markdown body, without frontmatter. Tests can consume these values once
 - Do not globally collapse whitespace after serialization. HTML fallbacks are deliberate output contracts, not silently
   discarded content.
 
-The exact strings document deterministic target behavior. They are not active tests yet and do not assert that the
-current implementation already conforms.
+The exact strings are active conversion contracts. The structural test suite also reparses Markdown to verify the
+resulting hierarchy and node contents.
 
 ## Known limitations of the previous conversion
 
