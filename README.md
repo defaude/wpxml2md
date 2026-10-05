@@ -35,10 +35,10 @@ deno task dev path/to/export.xml
 ```
 
 Dry-run writes the converted Markdown to the usual `output/<year>/<month>/<slug>/index.md` files, including local links
-to files under `media/`. It creates the required directories and replaces existing Markdown files so you can repeat the
-conversion without deleting the output folder. Media downloads are skipped; existing media and unrelated files are
-preserved. The console shows progress and planned media URLs, without printing the Markdown content. The default input
-is `export.xml` for all tasks.
+to files under `media/`. It creates the post directories and replaces existing Markdown files so you can repeat the
+conversion without deleting the output folder. The `media/` directories are only created during a normal run. Media
+downloads are skipped during dry-run; existing media and unrelated files are preserved. The console shows progress and
+planned media URLs, without printing the Markdown content. The default input is `export.xml` for all tasks.
 
 The preview assumes the full-sized image exists. It cannot predict download errors or the resulting fallback filenames
 without accessing the network. The first invocation may still fetch missing project dependencies into Deno's cache.

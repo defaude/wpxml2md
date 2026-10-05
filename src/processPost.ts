@@ -11,14 +11,8 @@ export async function processPost(post: Post, site: string, attachments: Record<
 
     const postFolder = join('output', `${year}`, month, post.slug);
     const mediaFolder = join(postFolder, 'media');
-    if (dryRun) {
-        await Deno.mkdir(mediaFolder, { recursive: true });
-    } else {
-        await Deno.mkdir(join('output', `${year}`, month), { recursive: true });
-        // Exclusive creation protects existing posts even when this function is called directly.
-        await Deno.mkdir(postFolder);
-        await Deno.mkdir(mediaFolder);
-    }
+    await Deno.mkdir(postFolder, { recursive: true });
+    if (!dryRun) await Deno.mkdir(mediaFolder, { recursive: true });
     console.log(`${dryRun ? '[dry-run] ' : ''}Processing post "${post.slug}"`);
 
     // download thumbnail

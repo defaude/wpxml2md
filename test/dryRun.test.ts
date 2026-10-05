@@ -50,8 +50,9 @@ Deno.test('dry-run writes Markdown repeatedly and preserves media without printi
         const markdownPath = 'output/2025/01/example/index.md';
         const mediaFolder = 'output/2025/01/example/media';
         expect(await Deno.readTextFile(markdownPath)).toBe(markdown);
-        expect(Array.from(Deno.readDirSync(mediaFolder))).toEqual([]);
+        await expect(Deno.stat(mediaFolder)).rejects.toThrow(Deno.errors.NotFound);
         expect(await Deno.readTextFile('output/keep.txt')).toEqual('unchanged');
+        await Deno.mkdir(mediaFolder);
         await Deno.writeFile(`${mediaFolder}/photo.jpg`, new Uint8Array([4, 5, 6]));
         await Deno.writeTextFile(markdownPath, 'stale Markdown');
         await Deno.writeTextFile('export.xml', xmlDocument(xmlItem()));
@@ -72,7 +73,7 @@ Deno.test('dry-run writes Markdown repeatedly and preserves media without printi
         await Deno.remove('output', { recursive: true });
         await main(['--dry-run']);
         expect(await Deno.readTextFile(markdownPath)).toBe(updatedMarkdown);
-        expect(Array.from(Deno.readDirSync(mediaFolder))).toEqual([]);
+        await expect(Deno.stat(mediaFolder)).rejects.toThrow(Deno.errors.NotFound);
     } finally {
         console.log = log;
         globalThis.fetch = fetch;
@@ -116,7 +117,7 @@ Deno.test('normal downloads save bytes and fall back from missing full-sized ima
     }
 });
 
-Deno.test('normal conversion writes output once and preserves existing posts', async () => {
+Deno.test('normal conversion creates media folder and rejects existing output', async () => {
     const dir = await Deno.makeTempDir();
     const cwd = Deno.cwd();
     try {
@@ -126,9 +127,8 @@ Deno.test('normal conversion writes output once and preserves existing posts', a
         const path = 'output/2025/01/example/index.md';
         const original = await Deno.readTextFile(path);
         expect(original).toContain('Hello &amp; world');
-        await expect(processPost({ ...examplePost }, 'https://example.org', {})).rejects.toThrow(
-            Deno.errors.AlreadyExists,
-        );
+        expect((await Deno.stat('output/2025/01/example/media')).isDirectory).toBe(true);
+        await expect(main([])).rejects.toThrow('already exists');
         expect(await Deno.readTextFile(path)).toEqual(original);
     } finally {
         Deno.chdir(cwd);
@@ -159,7 +159,7 @@ Deno.test({
             expect(markdown).toContain('media/video.mp4');
             expect(markdown).toContain('media/cover.jpg');
             expect(await Deno.readTextFile('output/2025/01/example/index.md')).toBe(markdown);
-            expect(Array.from(Deno.readDirSync('output/2025/01/example/media'))).toEqual([]);
+            await expect(Deno.stat('output/2025/01/example/media')).rejects.toThrow(Deno.errors.NotFound);
         } finally {
             Deno.chdir(cwd);
             await Deno.remove(dir, { recursive: true });
