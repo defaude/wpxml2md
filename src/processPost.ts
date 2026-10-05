@@ -4,28 +4,26 @@ import { toMarkdown } from './toMarkdown.ts';
 import { Post } from './model.ts';
 import { downloadImage, downloadVideo } from './downloadMedia.ts';
 
-export async function processPost(post: Post, site: string, attachments: Record<string, string>) {
+export async function processPost(post: Post, site: string, attachments: Record<string, string>, dryRun = false) {
     const publishedDate = new Date(post.createdAt);
     const year = publishedDate.getUTCFullYear();
     const month = `${publishedDate.getUTCMonth() + 1}`.padStart(2, '0');
 
     const postFolder = join('output', `${year}`, month, post.slug);
-    const alreadyExists = await Deno.stat(postFolder).then(() => true).catch(() => false);
-    // if (alreadyExists) {
-    //     console.warn(`Post "${post.slug}" already exists, skipping`);
-    //     return;
-    // }
-
-    console.log(`Processing post "${post.slug}"`);
-
     const mediaFolder = join(postFolder, 'media');
-    await Deno.mkdir(mediaFolder, { recursive: true });
+    if (!dryRun) {
+        await Deno.mkdir(join('output', `${year}`, month), { recursive: true });
+        // Exclusive creation protects existing posts even when this function is called directly.
+        await Deno.mkdir(postFolder);
+        await Deno.mkdir(mediaFolder);
+    }
+    console.log(`${dryRun ? '[dry-run] ' : ''}Processing post "${post.slug}"`);
 
     // download thumbnail
     const thumbnailUrl = post.thumbnailId ? attachments[post.thumbnailId] : undefined;
     if (thumbnailUrl) {
         try {
-            post.thumbnailUrl = await downloadImage(thumbnailUrl, mediaFolder, postFolder);
+            post.thumbnailUrl = await downloadImage(thumbnailUrl, mediaFolder, postFolder, dryRun);
         } catch (e) {
             console.error('  ❌Could not download thumbnail', e);
         }
@@ -39,7 +37,7 @@ export async function processPost(post: Post, site: string, attachments: Record<
         const $img = $link.find('img');
         const src = $img.attr('src') as string;
         const alt = $img.attr('alt') ?? '';
-        const imagePath = await downloadImage(src, mediaFolder, postFolder);
+        const imagePath = await downloadImage(src, mediaFolder, postFolder, dryRun);
         const imageString = `[![${alt}](${imagePath})](${imagePath})`;
         $link.replaceWith(imageString);
     }
@@ -50,7 +48,7 @@ export async function processPost(post: Post, site: string, attachments: Record<
         const src = $img.attr('src') as string;
         const alt = $img.attr('alt') || basename(src);
         if (src.startsWith(site)) {
-            const imagePath = await downloadImage(src, mediaFolder, postFolder);
+            const imagePath = await downloadImage(src, mediaFolder, postFolder, dryRun);
             const imageString = `![${alt}](${imagePath})`;
             $img.replaceWith(imageString);
         }
@@ -60,7 +58,7 @@ export async function processPost(post: Post, site: string, attachments: Record<
     for (const figure of $('figure.wp-block-video')) {
         const $figure = $(figure);
         const src = $figure.find('video').attr('src') as string;
-        const videoPath = await downloadVideo(src, mediaFolder, postFolder);
+        const videoPath = await downloadVideo(src, mediaFolder, postFolder, dryRun);
         const videoString = `<video controls src="${videoPath}"></video>`;
         $figure.replaceWith(videoString);
     }
@@ -131,5 +129,7 @@ export async function processPost(post: Post, site: string, attachments: Record<
         .replaceAll('\n\n\n\n', '\n\n')
         .replaceAll('\n\n\n', '\n\n');
 
-    await Deno.writeTextFile(join(postFolder, 'index.md'), toMarkdown(post));
+    const markdown = toMarkdown(post);
+    if (!dryRun) await Deno.writeTextFile(join(postFolder, 'index.md'), markdown);
+    return markdown;
 }

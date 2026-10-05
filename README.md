@@ -1,21 +1,73 @@
 # WPxml2md
 
-My attempt at a script that converts a Wordpress XML export into markdown that can be consumed by static site generators
-like e.g. [Astro](https://astro.build/).
+Convert a WordPress XML export into Markdown for static site generators such as Astro. Requires Deno 2.9 or newer.
 
-⚠️ Right now, it's hand-crafted, unfinished, hacky, and definitely doesn't cover all the different variants and styles
-how content will come out of your worpress installation ⚠️
+This is a small, purpose-built converter, not a complete WordPress migration tool. It processes posts and attachment
+metadata; pages and other post types are ignored. HTML conversion covers common images, WordPress video blocks, links,
+emphasis, lists and headings. Complex blocks and nested structures may need manual cleanup.
 
-## How to
+## Usage
 
-1. Download your Wordpress export file and save it as `export.html`.
-2. Run `npm run readWpItems`. This will basically just translate the XML into a JSON file called `export.json`.
-3. Run `npm run process`. This will attempt to read all posts and produce files in `output/<year>/<month>/<slug>/**/*`.
+Save your WordPress export as `export.xml`, then run:
 
-Each post folder contains its `index.md`. The `process` script attempts to download all images contained the post and
-store them in a `./media` subfolder in the post's folder.
+```sh
+deno task start
+# Or specify another export:
+deno task start path/to/export.xml
+```
 
-## TO DO
+The converter creates `output/<year>/<month>/<slug>/index.md`, with downloaded media in each post's `media/` directory.
+Dates use UTC and ISO 8601; frontmatter is serialized as YAML. Images with common WordPress thumbnail suffixes try the
+full-sized URL first, then fall back to the original URL if that fails.
 
-- [ ] produce better, cleaner output with less inline HTML and less HTML comments
-- [ ] consider downloading videos
+A normal run fails if `output` already exists, whether it is a file, directory or symlink. Move or remove it explicitly
+before another normal run. Nothing is automatically deleted or overwritten. A failed conversion may leave partial
+output; inspect that output before moving or removing it and retrying.
+
+## Preview without downloads
+
+```sh
+deno task start --dry-run path/to/export.xml
+# Equivalent preview task, without network or write permissions:
+deno task preview path/to/export.xml
+# Watch source changes and repeat the preview:
+deno task dev path/to/export.xml
+```
+
+Dry-run prints progress, planned media URLs and the complete resulting Markdown for each post. It runs the same text
+transformations but does not download media, create output directories, write files or delete anything. Existing output
+is left untouched and does not prevent a preview. The default input is `export.xml` for all tasks.
+
+The preview assumes the full-sized image exists. It cannot predict download errors or the resulting fallback filenames
+without accessing the network. The first invocation may still fetch missing project dependencies into Deno's cache.
+
+Use `deno task start --help` for the command summary.
+
+## Development
+
+```sh
+deno task verify
+```
+
+This runs formatting, lint, type checking and offline tests. Tests cover XML parsing, YAML round trips, text conversion,
+downloads with simulated HTTP responses, existing-target protection and dry-run with denied network/write permissions.
+They use temporary directories and never process your real export.
+
+The official Deno agent skill is included under `.agents/skills/deno/`.
+
+## Library choices
+
+- `@libs/xml` maps XML into objects and is backed by `@std/xml`. Keeping that adapter avoids reimplementing WordPress
+  namespace, CDATA and attribute handling on top of the lower-level parser.
+- `@std/yaml` serializes frontmatter, replacing hand-written quoting and escaping.
+- `@std/cli` parses options; `@std/path` handles filesystem paths; `@std/text` supplies slug fallback.
+- Native `Date` UTC methods replace the two date-fns dependencies. Native `Object.fromEntries`, `Deno.readTextFile` and
+  `Deno.writeTextFile` replace manual accumulation and file handling.
+- Tests use `@std/assert` directly instead of an additional expectation library.
+- Cheerio remains responsible for HTML parsing and traversal. Deno's standard libraries do not provide an equivalent
+  HTML-to-Markdown converter. The WordPress-specific transformations and thumbnail suffix handling remain local.
+
+## Known limitations
+
+Paragraph boundaries without intervening whitespace, nested lists, heading levels and unsupported WordPress blocks still
+need more conversion work. These pre-existing limitations are not resolved by updating the toolchain or using dry-run.
