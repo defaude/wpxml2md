@@ -17,10 +17,12 @@ Deno.test('CLI parses dry-run before or after input and rejects invalid argument
     );
 });
 
-Deno.test('dry-run converts media and text without changing an existing target', async () => {
+Deno.test('dry-run writes Markdown repeatedly and preserves media without printing content', async () => {
     const dir = await Deno.makeTempDir();
     const cwd = Deno.cwd();
     const fetch = globalThis.fetch;
+    const log = console.log;
+    const logs: string[] = [];
     try {
         Deno.chdir(dir);
         await Deno.mkdir('output');
@@ -28,6 +30,7 @@ Deno.test('dry-run converts media and text without changing an existing target',
         globalThis.fetch = () => {
             throw new Error('Dry-run must never fetch');
         };
+        console.log = (...args) => logs.push(args.join(' '));
         const markdown = await processPost(
             {
                 ...examplePost,
@@ -44,17 +47,34 @@ Deno.test('dry-run converts media and text without changing an existing target',
         for (const path of ['media/photo.jpg', 'media/plain.jpg', 'media/cover.jpg', 'media/movie.mp4']) {
             expect(markdown).toContain(path);
         }
+        const markdownPath = 'output/2025/01/example/index.md';
+        const mediaFolder = 'output/2025/01/example/media';
+        expect(await Deno.readTextFile(markdownPath)).toBe(markdown);
+        expect(Array.from(Deno.readDirSync(mediaFolder))).toEqual([]);
         expect(await Deno.readTextFile('output/keep.txt')).toEqual('unchanged');
-        expect(Array.from(Deno.readDirSync('output')).map((entry) => entry.name)).toEqual(['keep.txt']);
+        await Deno.writeFile(`${mediaFolder}/photo.jpg`, new Uint8Array([4, 5, 6]));
+        await Deno.writeTextFile(markdownPath, 'stale Markdown');
         await Deno.writeTextFile('export.xml', xmlDocument(xmlItem()));
         await main(['--dry-run']);
+        const updatedMarkdown = await Deno.readTextFile(markdownPath);
+        expect(updatedMarkdown).toContain('Hello &amp; world');
+        expect(updatedMarkdown).not.toContain('stale Markdown');
+        expect(await Deno.readFile(`${mediaFolder}/photo.jpg`)).toEqual(new Uint8Array([4, 5, 6]));
+        expect(await Deno.readTextFile('output/keep.txt')).toBe('unchanged');
+        await main(['--dry-run']);
+        expect(await Deno.readTextFile(markdownPath)).toBe(updatedMarkdown);
+        expect(logs.join('\n')).not.toContain(updatedMarkdown);
+        expect(logs.join('\n')).not.toContain('Hello **world**');
+        expect(logs.join('\n')).toContain('[dry-run] Processing post');
         await expect(main([])).rejects.toThrow(
             'already exists',
         );
         await Deno.remove('output', { recursive: true });
         await main(['--dry-run']);
-        await expect(Deno.stat('output')).rejects.toThrow(Deno.errors.NotFound);
+        expect(await Deno.readTextFile(markdownPath)).toBe(updatedMarkdown);
+        expect(Array.from(Deno.readDirSync(mediaFolder))).toEqual([]);
     } finally {
+        console.log = log;
         globalThis.fetch = fetch;
         Deno.chdir(cwd);
         await Deno.remove(dir, { recursive: true });
@@ -117,22 +137,32 @@ Deno.test('normal conversion writes output once and preserves existing posts', a
 });
 
 Deno.test({
-    name: 'dry-run works with filesystem writes and network explicitly denied',
-    permissions: { write: false, net: false },
+    name: 'dry-run writes Markdown with network explicitly denied',
+    permissions: { net: false, read: 'inherit', write: 'inherit', env: 'inherit' },
     async fn() {
-        const markdown = await processPost(
-            {
-                ...examplePost,
-                content:
-                    '<img src="https://example.invalid/photo.jpg"><figure class="wp-block-video"><video src="https://example.invalid/video.mp4"></video></figure>',
-                thumbnailId: '2',
-            },
-            'https://example.invalid',
-            { '2': 'https://example.invalid/cover.jpg' },
-            true,
-        );
-        expect(markdown).toContain('media/photo.jpg');
-        expect(markdown).toContain('media/video.mp4');
-        expect(markdown).toContain('media/cover.jpg');
+        const dir = await Deno.makeTempDir();
+        const cwd = Deno.cwd();
+        try {
+            Deno.chdir(dir);
+            const markdown = await processPost(
+                {
+                    ...examplePost,
+                    content:
+                        '<img src="https://example.invalid/photo.jpg"><figure class="wp-block-video"><video src="https://example.invalid/video.mp4"></video></figure>',
+                    thumbnailId: '2',
+                },
+                'https://example.invalid',
+                { '2': 'https://example.invalid/cover.jpg' },
+                true,
+            );
+            expect(markdown).toContain('media/photo.jpg');
+            expect(markdown).toContain('media/video.mp4');
+            expect(markdown).toContain('media/cover.jpg');
+            expect(await Deno.readTextFile('output/2025/01/example/index.md')).toBe(markdown);
+            expect(Array.from(Deno.readDirSync('output/2025/01/example/media'))).toEqual([]);
+        } finally {
+            Deno.chdir(cwd);
+            await Deno.remove(dir, { recursive: true });
+        }
     },
 });

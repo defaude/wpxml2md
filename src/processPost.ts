@@ -11,7 +11,9 @@ export async function processPost(post: Post, site: string, attachments: Record<
 
     const postFolder = join('output', `${year}`, month, post.slug);
     const mediaFolder = join(postFolder, 'media');
-    if (!dryRun) {
+    if (dryRun) {
+        await Deno.mkdir(mediaFolder, { recursive: true });
+    } else {
         await Deno.mkdir(join('output', `${year}`, month), { recursive: true });
         // Exclusive creation protects existing posts even when this function is called directly.
         await Deno.mkdir(postFolder);
@@ -130,6 +132,6 @@ export async function processPost(post: Post, site: string, attachments: Record<
         .replaceAll('\n\n\n', '\n\n');
 
     const markdown = toMarkdown(post);
-    if (!dryRun) await Deno.writeTextFile(join(postFolder, 'index.md'), markdown);
+    await Deno.writeTextFile(join(postFolder, 'index.md'), markdown);
     return markdown;
 }

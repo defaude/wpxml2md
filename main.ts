@@ -20,7 +20,7 @@ export async function main(args = Deno.args) {
     const { input, dryRun, help } = parseOptions(args);
     if (help) {
         console.log(
-            'Usage: deno task start [--dry-run] [export.xml]\n\n--dry-run  Preview Markdown without downloads or filesystem changes.',
+            'Usage: deno task start [--dry-run] [export.xml]\n\n--dry-run  Write Markdown, allowing existing output, without downloading media.',
         );
         return;
     }
@@ -34,10 +34,9 @@ export async function main(args = Deno.args) {
     }
     console.log(`Reading ${input}...`);
     const { link, posts, attachments } = await readXml(input);
-    if (!dryRun) await Deno.mkdir('output');
+    await Deno.mkdir('output', { recursive: dryRun });
     for (const post of posts) {
-        const markdown = await processPost(post, link, attachments, dryRun);
-        if (dryRun) console.log(`\n[dry-run] Markdown for ${post.slug}:\n${markdown}\n`);
+        await processPost(post, link, attachments, dryRun);
     }
 }
 

@@ -28,15 +28,17 @@ output; inspect that output before moving or removing it and retrying.
 
 ```sh
 deno task start --dry-run path/to/export.xml
-# Equivalent preview task, without network or write permissions:
+# Equivalent preview task, with network access denied and writes limited to output:
 deno task preview path/to/export.xml
 # Watch source changes and repeat the preview:
 deno task dev path/to/export.xml
 ```
 
-Dry-run prints progress, planned media URLs and the complete resulting Markdown for each post. It runs the same text
-transformations but does not download media, create output directories, write files or delete anything. Existing output
-is left untouched and does not prevent a preview. The default input is `export.xml` for all tasks.
+Dry-run writes the converted Markdown to the usual `output/<year>/<month>/<slug>/index.md` files, including local links
+to files under `media/`. It creates the required directories and replaces existing Markdown files so you can repeat the
+conversion without deleting the output folder. Media downloads are skipped; existing media and unrelated files are
+preserved. The console shows progress and planned media URLs, without printing the Markdown content. The default input
+is `export.xml` for all tasks.
 
 The preview assumes the full-sized image exists. It cannot predict download errors or the resulting fallback filenames
 without accessing the network. The first invocation may still fetch missing project dependencies into Deno's cache.
@@ -50,8 +52,8 @@ deno task verify
 ```
 
 This runs formatting, lint, type checking and offline tests. Tests cover XML parsing, YAML round trips, text conversion,
-downloads with simulated HTTP responses, existing-target protection and dry-run with denied network/write permissions.
-They use temporary directories and never process your real export.
+downloads with simulated HTTP responses, existing-target protection and dry-run with denied network permissions. They
+use temporary directories and never process your real export.
 
 The official Deno agent skill is included under `.agents/skills/deno/`.
 

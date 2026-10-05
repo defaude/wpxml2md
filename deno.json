@@ -1,13 +1,13 @@
 {
     "tasks": {
         "start": "deno --allow-env --allow-read --allow-write --allow-net main.ts",
-        "dev": "deno run --watch --allow-env --allow-read --deny-write --deny-net main.ts --dry-run",
+        "dev": "deno run --watch --allow-env --allow-read --allow-write=output --deny-net main.ts --dry-run",
         "test": "deno test --frozen --allow-read --allow-write --allow-env",
         "check": "deno check --frozen main.ts test/*.test.ts",
         "fmt": "deno fmt",
         "lint": "deno lint",
         "verify": "deno fmt --check && deno lint && deno task check && deno task test",
-        "preview": "deno run --allow-env --allow-read --deny-write --deny-net main.ts --dry-run"
+        "preview": "deno run --allow-env --allow-read --allow-write=output --deny-net main.ts --dry-run"
     },
     "imports": {
         "@libs/xml": "jsr:@libs/xml@^8.0.1",
