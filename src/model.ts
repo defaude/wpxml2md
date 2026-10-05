@@ -6,7 +6,7 @@ export type Category = {
 export type Post = {
     id: string;
     slug: string;
-    createdAt: string; // 2024-03-17 16:31:00 (UTC)
+    createdAt: string; // ISO 8601 instant, e.g. 2024-03-17T16:31:00.000Z
     modifiedAt: string;
     title: string;
     content: string;

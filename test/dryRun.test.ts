@@ -1,16 +1,20 @@
-import { assertEquals, assertRejects, assertStringIncludes, assertThrows } from '@std/assert';
+import { expect } from '@std/expect';
 import { main, parseOptions } from '../main.ts';
 import { downloadImage, downloadVideo } from '../src/downloadMedia.ts';
 import { processPost } from '../src/processPost.ts';
 import { examplePost, xmlDocument, xmlItem } from './fixtures.ts';
 
 Deno.test('CLI parses dry-run before or after input and rejects invalid arguments', () => {
-    assertEquals(parseOptions([]), { input: 'export.xml', dryRun: false, help: false });
+    expect(parseOptions([])).toEqual({ input: 'export.xml', dryRun: false, help: false });
     for (const args of [['--dry-run', 'sample.xml'], ['sample.xml', '--dry-run']]) {
-        assertEquals(parseOptions(args), { input: 'sample.xml', dryRun: true, help: false });
+        expect(parseOptions(args)).toEqual({ input: 'sample.xml', dryRun: true, help: false });
     }
-    assertThrows(() => parseOptions(['--typo']), Error, 'Unknown option');
-    assertThrows(() => parseOptions(['a.xml', 'b.xml']), Error, 'at most one');
+    expect(() => parseOptions(['--typo'])).toThrow(
+        'Unknown option',
+    );
+    expect(() => parseOptions(['a.xml', 'b.xml'])).toThrow(
+        'at most one',
+    );
 });
 
 Deno.test('dry-run converts media and text without changing an existing target', async () => {
@@ -36,18 +40,20 @@ Deno.test('dry-run converts media and text without changing an existing target',
             { '2': 'https://example.org/cover.jpg' },
             true,
         );
-        assertStringIncludes(markdown, 'Hello **world**');
+        expect(markdown).toContain('Hello **world**');
         for (const path of ['media/photo.jpg', 'media/plain.jpg', 'media/cover.jpg', 'media/movie.mp4']) {
-            assertStringIncludes(markdown, path);
+            expect(markdown).toContain(path);
         }
-        assertEquals(await Deno.readTextFile('output/keep.txt'), 'unchanged');
-        assertEquals(Array.from(Deno.readDirSync('output')).map((entry) => entry.name), ['keep.txt']);
+        expect(await Deno.readTextFile('output/keep.txt')).toEqual('unchanged');
+        expect(Array.from(Deno.readDirSync('output')).map((entry) => entry.name)).toEqual(['keep.txt']);
         await Deno.writeTextFile('export.xml', xmlDocument(xmlItem()));
         await main(['--dry-run']);
-        await assertRejects(() => main([]), Error, 'already exists');
+        await expect(main([])).rejects.toThrow(
+            'already exists',
+        );
         await Deno.remove('output', { recursive: true });
         await main(['--dry-run']);
-        await assertRejects(() => Deno.stat('output'), Deno.errors.NotFound);
+        await expect(Deno.stat('output')).rejects.toThrow(Deno.errors.NotFound);
     } finally {
         globalThis.fetch = fetch;
         Deno.chdir(cwd);
@@ -70,23 +76,18 @@ Deno.test('normal downloads save bytes and fall back from missing full-sized ima
                     : new Response(new Uint8Array([1, 2, 3])),
             );
         };
-        assertEquals(
-            await downloadImage('https://example.org/photo-1024x768.jpg', `${dir}/media`, dir),
+        expect(await downloadImage('https://example.org/photo-1024x768.jpg', `${dir}/media`, dir)).toEqual(
             'media/photo-1024x768.jpg',
         );
-        assertEquals(calls, ['https://example.org/photo.jpg', 'https://example.org/photo-1024x768.jpg']);
-        assertEquals(await Deno.readFile(`${dir}/media/photo-1024x768.jpg`), new Uint8Array([1, 2, 3]));
-        assertEquals(await downloadVideo('https://example.org/movie.mp4', `${dir}/media`, dir), 'media/movie.mp4');
-        assertEquals(await Deno.readFile(`${dir}/media/movie.mp4`), new Uint8Array([1, 2, 3]));
+        expect(calls).toEqual(['https://example.org/photo.jpg', 'https://example.org/photo-1024x768.jpg']);
+        expect(await Deno.readFile(`${dir}/media/photo-1024x768.jpg`)).toEqual(new Uint8Array([1, 2, 3]));
+        expect(await downloadVideo('https://example.org/movie.mp4', `${dir}/media`, dir)).toEqual('media/movie.mp4');
+        expect(await Deno.readFile(`${dir}/media/movie.mp4`)).toEqual(new Uint8Array([1, 2, 3]));
         globalThis.fetch = () => Promise.resolve(new Response('failed', { status: 500 }));
-        await assertRejects(
-            () => downloadImage('https://example.org/bad.jpg', `${dir}/media`, dir),
-            Error,
+        await expect(downloadImage('https://example.org/bad.jpg', `${dir}/media`, dir)).rejects.toThrow(
             'Failed to download',
         );
-        await assertRejects(
-            () => downloadVideo('https://example.org/bad.mp4', `${dir}/media`, dir),
-            Error,
+        await expect(downloadVideo('https://example.org/bad.mp4', `${dir}/media`, dir)).rejects.toThrow(
             'Failed to download',
         );
     } finally {
@@ -104,12 +105,11 @@ Deno.test('normal conversion writes output once and preserves existing posts', a
         await main([]);
         const path = 'output/2025/01/example/index.md';
         const original = await Deno.readTextFile(path);
-        assertStringIncludes(original, 'Hello &amp; world');
-        await assertRejects(
-            () => processPost({ ...examplePost }, 'https://example.org', {}),
+        expect(original).toContain('Hello &amp; world');
+        await expect(processPost({ ...examplePost }, 'https://example.org', {})).rejects.toThrow(
             Deno.errors.AlreadyExists,
         );
-        assertEquals(await Deno.readTextFile(path), original);
+        expect(await Deno.readTextFile(path)).toEqual(original);
     } finally {
         Deno.chdir(cwd);
         await Deno.remove(dir, { recursive: true });
@@ -131,8 +131,8 @@ Deno.test({
             { '2': 'https://example.invalid/cover.jpg' },
             true,
         );
-        assertStringIncludes(markdown, 'media/photo.jpg');
-        assertStringIncludes(markdown, 'media/video.mp4');
-        assertStringIncludes(markdown, 'media/cover.jpg');
+        expect(markdown).toContain('media/photo.jpg');
+        expect(markdown).toContain('media/video.mp4');
+        expect(markdown).toContain('media/cover.jpg');
     },
 });

@@ -1,5 +1,5 @@
 import { unThumbnail } from '../src/unThumbnail.ts';
-import { assertEquals } from '@std/assert';
+import { expect } from '@std/expect';
 
 Deno.test('should return the unchanged url', () => {
     const urls = [
@@ -8,7 +8,7 @@ Deno.test('should return the unchanged url', () => {
     ];
     for (const url of urls) {
         const output = unThumbnail(url);
-        assertEquals(output, url);
+        expect(output).toEqual(url);
     }
 });
 
@@ -20,6 +20,6 @@ Deno.test('should strip common thumbnail suffixes', () => {
 
     for (const { original, expected } of urls) {
         const output = unThumbnail(original);
-        assertEquals(output, expected);
+        expect(output).toEqual(expected);
     }
 });

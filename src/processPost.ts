@@ -5,9 +5,9 @@ import { Post } from './model.ts';
 import { downloadImage, downloadVideo } from './downloadMedia.ts';
 
 export async function processPost(post: Post, site: string, attachments: Record<string, string>, dryRun = false) {
-    const publishedDate = new Date(post.createdAt);
-    const year = publishedDate.getUTCFullYear();
-    const month = `${publishedDate.getUTCMonth() + 1}`.padStart(2, '0');
+    const publishedDate = Temporal.Instant.from(post.createdAt).toZonedDateTimeISO('UTC');
+    const year = publishedDate.year;
+    const month = `${publishedDate.month}`.padStart(2, '0');
 
     const postFolder = join('output', `${year}`, month, post.slug);
     const mediaFolder = join(postFolder, 'media');

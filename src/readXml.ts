@@ -65,8 +65,8 @@ function toPost(item: WpChannelItem): Post {
     return {
         id: item['wp:post_id'],
         slug: item['wp:post_name'] ?? slugify(item.title),
-        createdAt: `${item['wp:post_date_gmt']} +0000`,
-        modifiedAt: `${item['wp:post_modified_gmt']} +0000`,
+        createdAt: Temporal.Instant.from(`${item['wp:post_date_gmt']}Z`).toString({ fractionalSecondDigits: 3 }),
+        modifiedAt: Temporal.Instant.from(`${item['wp:post_modified_gmt']}Z`).toString({ fractionalSecondDigits: 3 }),
         title: item.title,
         content: item['content:encoded'] ?? '',
         categories: asArray(item.category).map(toCategory),

@@ -61,9 +61,9 @@ The official Deno agent skill is included under `.agents/skills/deno/`.
   namespace, CDATA and attribute handling on top of the lower-level parser.
 - `@std/yaml` serializes frontmatter, replacing hand-written quoting and escaping.
 - `@std/cli` parses options; `@std/path` handles filesystem paths; `@std/text` supplies slug fallback.
-- Native `Date` UTC methods replace the two date-fns dependencies. Native `Object.fromEntries`, `Deno.readTextFile` and
-  `Deno.writeTextFile` replace manual accumulation and file handling.
-- Tests use `@std/assert` directly instead of an additional expectation library.
+- Native `Temporal` UTC methods replace the two date-fns dependencies. Native `Object.fromEntries`, `Deno.readTextFile`
+  and `Deno.writeTextFile` replace manual accumulation and file handling.
+- Tests use the `expect` syntax from `@std/expect`.
 - Cheerio remains responsible for HTML parsing and traversal. Deno's standard libraries do not provide an equivalent
   HTML-to-Markdown converter. The WordPress-specific transformations and thumbnail suffix handling remain local.
 
