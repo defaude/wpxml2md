@@ -47,8 +47,8 @@ Deno.test('dry-run writes Markdown repeatedly and preserves media without printi
         for (const path of ['media/photo.jpg', 'media/plain.jpg', 'media/cover.jpg', 'media/movie.mp4']) {
             expect(markdown).toContain(path);
         }
-        const markdownPath = 'output/2025/01/example/index.md';
-        const mediaFolder = 'output/2025/01/example/media';
+        const markdownPath = 'output/2025/01/01_example/index.md';
+        const mediaFolder = 'output/2025/01/01_example/media';
         expect(await Deno.readTextFile(markdownPath)).toBe(markdown);
         await expect(Deno.stat(mediaFolder)).rejects.toThrow(Deno.errors.NotFound);
         expect(await Deno.readTextFile('output/keep.txt')).toEqual('unchanged');
@@ -124,10 +124,10 @@ Deno.test('normal conversion creates media folder and rejects existing output', 
         Deno.chdir(dir);
         await Deno.writeTextFile('export.xml', xmlDocument(xmlItem()));
         await main([]);
-        const path = 'output/2025/01/example/index.md';
+        const path = 'output/2025/01/01_example/index.md';
         const original = await Deno.readTextFile(path);
         expect(original).toContain('Hello &amp; world');
-        expect((await Deno.stat('output/2025/01/example/media')).isDirectory).toBe(true);
+        expect((await Deno.stat('output/2025/01/01_example/media')).isDirectory).toBe(true);
         await expect(main([])).rejects.toThrow('already exists');
         expect(await Deno.readTextFile(path)).toEqual(original);
     } finally {
@@ -158,8 +158,8 @@ Deno.test({
             expect(markdown).toContain('media/photo.jpg');
             expect(markdown).toContain('media/video.mp4');
             expect(markdown).toContain('media/cover.jpg');
-            expect(await Deno.readTextFile('output/2025/01/example/index.md')).toBe(markdown);
-            await expect(Deno.stat('output/2025/01/example/media')).rejects.toThrow(Deno.errors.NotFound);
+            expect(await Deno.readTextFile('output/2025/01/01_example/index.md')).toBe(markdown);
+            await expect(Deno.stat('output/2025/01/01_example/media')).rejects.toThrow(Deno.errors.NotFound);
         } finally {
             Deno.chdir(cwd);
             await Deno.remove(dir, { recursive: true });

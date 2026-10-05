@@ -16,9 +16,10 @@ deno task start
 deno task start path/to/export.xml
 ```
 
-The converter creates `output/<year>/<month>/<slug>/index.md`, with downloaded media in each post's `media/` directory.
-Dates use UTC and ISO 8601; frontmatter is serialized as YAML. Images with common WordPress thumbnail suffixes try the
-full-sized URL first, then fall back to the original URL if that fails.
+The converter creates `output/<year>/<month>/<day>_<slug>/index.md`, with downloaded media in each post's `media/`
+directory. The day is the zero-padded UTC day of the month (`01` through `31`). Dates use UTC and ISO 8601; frontmatter
+is serialized as YAML. Images with common WordPress thumbnail suffixes try the full-sized URL first, then fall back to
+the original URL if that fails.
 
 A normal run fails if `output` already exists, whether it is a file, directory or symlink. Move or remove it explicitly
 before another normal run. Nothing is automatically deleted or overwritten. A failed conversion may leave partial
@@ -34,9 +35,9 @@ deno task preview path/to/export.xml
 deno task dev path/to/export.xml
 ```
 
-Dry-run writes the converted Markdown to the usual `output/<year>/<month>/<slug>/index.md` files, including local links
-to files under `media/`. It creates the post directories and replaces existing Markdown files so you can repeat the
-conversion without deleting the output folder. The `media/` directories are only created during a normal run. Media
+Dry-run writes the converted Markdown to the usual `output/<year>/<month>/<day>_<slug>/index.md` files, including local
+links to files under `media/`. It creates the post directories and replaces existing Markdown files so you can repeat
+the conversion without deleting the output folder. The `media/` directories are only created during a normal run. Media
 downloads are skipped during dry-run; existing media and unrelated files are preserved. The console shows progress and
 planned media URLs, without printing the Markdown content. The default input is `export.xml` for all tasks.
 

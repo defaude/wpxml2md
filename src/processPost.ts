@@ -8,8 +8,9 @@ export async function processPost(post: Post, site: string, attachments: Record<
     const publishedDate = Temporal.Instant.from(post.createdAt).toZonedDateTimeISO('UTC');
     const year = publishedDate.year;
     const month = `${publishedDate.month}`.padStart(2, '0');
+    const day = `${publishedDate.day}`.padStart(2, '0');
 
-    const postFolder = join('output', `${year}`, month, post.slug);
+    const postFolder = join('output', `${year}`, month, `${day}_${post.slug}`);
     const mediaFolder = join(postFolder, 'media');
     await Deno.mkdir(postFolder, { recursive: true });
     if (!dryRun) await Deno.mkdir(mediaFolder, { recursive: true });

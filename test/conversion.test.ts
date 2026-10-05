@@ -44,7 +44,7 @@ Deno.test('XML supports zero or one item and missing categories', async () => {
 
 Deno.test('frontmatter uses UTC year/month and ISO dates', () => {
     const markdown = toMarkdown(examplePost);
-    expect(markdown).toContain('slug: 2025/01/example');
+    expect(markdown).toContain('slug: 2025/01/01_example');
     const metadata = parse(markdown.split('---')[1]) as Record<string, unknown>;
     expect(metadata.createdAt).toEqual('2025-01-01T00:30:00.000Z');
     expect(metadata.title).toEqual(examplePost.title);
@@ -64,7 +64,7 @@ Deno.test('HTML conversion retains text, emphasis and links', async () => {
     try {
         Deno.chdir(dir);
         await processPost({ ...examplePost }, 'https://example.org', {});
-        const markdown = await Deno.readTextFile('output/2025/01/example/index.md');
+        const markdown = await Deno.readTextFile('output/2025/01/01_example/index.md');
         expect(markdown).toContain('Hello **world**');
         expect(markdown).toContain('[Link](https://example.org)');
     } finally {
@@ -84,9 +84,9 @@ Deno.test('Temporal uses UTC calendar boundaries consistently in folders and fro
             modifiedAt: '2024-12-31T23:30:00-02:00',
         };
         await processPost(post, 'https://example.org', {});
-        const markdown = await Deno.readTextFile('output/2024/12/example/index.md');
+        const markdown = await Deno.readTextFile('output/2024/12/31_example/index.md');
         const metadata = parse(markdown.split('---')[1]) as Record<string, unknown>;
-        expect(metadata.slug).toBe('2024/12/example');
+        expect(metadata.slug).toBe('2024/12/31_example');
         expect(metadata.createdAt).toBe('2024-12-31T23:30:00.000Z');
         expect(metadata.modifiedAt).toBe('2025-01-01T01:30:00.000Z');
     } finally {

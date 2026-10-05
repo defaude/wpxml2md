@@ -5,8 +5,9 @@ export function toMarkdown(post: Post) {
     const publishedDate = Temporal.Instant.from(post.createdAt).toZonedDateTimeISO('UTC');
     const year = publishedDate.year;
     const month = `${publishedDate.month}`.padStart(2, '0');
+    const day = `${publishedDate.day}`.padStart(2, '0');
     const metadata = stringify({
-        slug: `${year}/${month}/${post.slug}`,
+        slug: `${year}/${month}/${day}_${post.slug}`,
         title: post.title,
         createdAt: publishedDate.toInstant().toString({ fractionalSecondDigits: 3 }),
         modifiedAt: Temporal.Instant.from(post.modifiedAt).toString({ fractionalSecondDigits: 3 }),
